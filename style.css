@@ -323,7 +323,7 @@ img {
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.5)), url('images/image.jpg') no-repeat center/cover;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2)), url('images/image.jpg') no-repeat center/cover;
     overflow: hidden;
 }
 
