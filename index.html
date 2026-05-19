@@ -441,7 +441,8 @@
       <div class="contact-form-wrapper animate-on-scroll">
         <div class="form-container">
           <h3>Envoyer un message</h3>
-          <form id="contactForm" class="contact-form" novalidate method="POST" name="contact" data-netlify="true" netlify-honeypot="bot-field">
+          <form id="form" class="contact-form" name="contact">
+            <input type="hidden" name="access_key" value="f80e4838-78b7-46a3-8828-e49ef761d382 ">
             <div class="form-row">
               <div class="form-group">
                 <label for="name">Nom complet *</label>
@@ -480,13 +481,6 @@
               <label for="privacy">J'accepte que mes informations soient utilisées uniquement pour être recontacté·e au sujet de ma demande.</label>
             </div>
 
-            <!-- Champ anti-spam caché pour Netlify -->
-            <input type="hidden" name="form-name" value="contact">
-            <div style="display: none;">
-              <label>Ne pas remplir : <input name="bot-field"></label>
-            </div>
-
-            <p id="formMessage" class="form-message" aria-live="polite"></p>
             <button type="submit" class="btn btn-primary">Envoyer le message</button>
           </form>
         </div>
@@ -533,11 +527,7 @@
     </div>
   </div>
 
-  <!-- Bouton retour en haut -->
-  <button id="backToTop" class="back-to-top" aria-label="Revenir en haut de la page"><i class="fa-solid fa-arrow-up"></i></button>
-
   </body>
-</html>
   <!-- JS -->
   <script src="script_clean.js"></script>
 </body>

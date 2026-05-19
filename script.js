@@ -152,69 +152,51 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Validation et sécurité du formulaire de contact
-    if (contactForm && formMessage) {
-        contactForm.addEventListener('submit', e => {
+    // Formulaire de contact avec Web3Forms
+    const form = document.getElementById('form');
+    if (form) {
+        const submitBtn = form.querySelector('button[type="submit"]');
+
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            formMessage.textContent = '';
-            formMessage.className = 'form-message';
 
-            const name = contactForm.querySelector('#name');
-            const email = contactForm.querySelector('#email');
-            const message = contactForm.querySelector('#message');
-            const privacy = contactForm.querySelector('#privacy');
-
-            // Sécurité : validation et nettoyage des entrées
-            const cleanName = name.value.trim().replace(/[<>]/g, '');
-            const cleanEmail = email.value.trim().replace(/[<>]/g, '');
-            const cleanMessage = message.value.trim().replace(/[<>]/g, '');
-
-            // Validation renforcée
-            if (!cleanName || cleanName.length < 2 || cleanName.length > 50) {
-                formMessage.textContent = 'Nom invalide (2-50 caractères requis).';
-                formMessage.classList.add('error');
+            // Validation hCaptcha
+            const hCaptcha = form.querySelector('textarea[name="h-captcha-response"]').value;
+            if (!hCaptcha) {
+                alert("Veuillez remplir le champ captcha");
                 return;
             }
 
-            if (!cleanEmail || !isValidEmail(cleanEmail)) {
-                formMessage.textContent = 'Email invalide.';
-                formMessage.classList.add('error');
-                return;
-            }
+            const formData = new FormData(form);
+            formData.append("access_key", "f80e4838-78b7-46a3-8828-e49ef761d382");
 
-            if (!cleanMessage || cleanMessage.length < 10 || cleanMessage.length > 1000) {
-                formMessage.textContent = 'Message invalide (10-1000 caractères requis).';
-                formMessage.classList.add('error');
-                return;
-            }
+            const originalText = submitBtn.textContent;
 
-            if (!privacy.checked) {
-                formMessage.textContent = 'Veuillez accepter la politique de confidentialité.';
-                formMessage.classList.add('error');
-                return;
-            }
-
-            // Protection contre la soumission multiple
-            const submitBtn = contactForm.querySelector('button[type="submit"]');
+            submitBtn.textContent = "Envoi en cours...";
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Envoi en cours...';
 
-            // Simulation d'envoi sécurisé
-            setTimeout(() => {
-                formMessage.textContent = 'Votre message a été envoyé. Merci pour votre confiance.';
-                formMessage.classList.remove('error');
-                formMessage.classList.add('success');
-                contactForm.reset();
+            try {
+                const response = await fetch("https://api.web3forms.com/submit", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert("Succès ! Votre message a été envoyé.");
+                    form.reset();
+                } else {
+                    alert("Erreur : " + data.message);
+                }
+
+            } catch (error) {
+                alert("Une erreur s'est produite. Veuillez réessayer.");
+            } finally {
+                submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Envoyer le message';
-            }, 1500);
+            }
         });
-    }
-
-    // Fonction de validation email sécurisée
-    function isValidEmail(email) {
-        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-        return emailRegex.test(email) && !email.includes('..') && email.length <= 254;
     }
 
     // Gestion du bouton de basculement mobile

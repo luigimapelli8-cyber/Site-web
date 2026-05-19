@@ -2460,10 +2460,13 @@ justify-content: space-around;
         order: 2;
     }
     
-    /* Pied de page */
+    /* Pied de page - Amélioration mobile */
     footer {
-        padding: 2rem 1rem;
+        padding: 2rem 1rem 1rem 1rem;
         text-align: center;
+        position: relative;
+        background: var(--color-dark);
+        color: var(--color-light);
     }
     
     .footer-content {
@@ -2473,6 +2476,46 @@ justify-content: space-around;
     
     .social-links {
         justify-content: center;
+    }
+    
+    /* Footer legal - superposition pour mobile */
+    .footer-legal {
+        background: rgba(0, 0, 0, 0.9);
+        padding: 1rem;
+        text-align: center;
+        position: relative;
+        margin-top: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .footer-legal .container {
+        padding: 0;
+    }
+    
+    .copyright {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Liens légaux sur mobile */
+    .legal-links-col {
+        margin-top: 1rem;
+    }
+    
+    .legal-links-col p {
+        margin: 0.3rem 0;
+        font-size: 0.8rem;
+    }
+    
+    .legal-links-col a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        font-size: 0.8rem;
+    }
+    
+    .legal-links-col a:hover {
+        color: var(--color-primary);
     }
 }
 

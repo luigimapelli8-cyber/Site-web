@@ -1,61 +1,71 @@
 // Attente du chargement du DOM
-document.addEventListener('DOMContentLoaded', () => {
-    // Sélection des éléments du DOM
+document.addEventListener('DOMContentLoaded', function() {
+    // Éléments du DOM
     const menuToggle = document.querySelector('.menu-toggle');
     const navLinks = document.querySelector('.nav-links');
-    const backToTop = document.getElementById('backToTop');
+    const menuBackBtn = document.querySelector('.menu-back-btn');
     const yearSpan = document.getElementById('currentYear');
-    const contactForm = document.getElementById('contactForm');
+    const contactForm = document.getElementById('form');
     const formMessage = document.getElementById('formMessage');
+    const animatedElements = document.querySelectorAll('.animate-on-scroll');
 
     // Mise à jour de l'année dans le footer
     if (yearSpan) {
         yearSpan.textContent = new Date().getFullYear();
     }
 
-    // Gestion du menu mobile
+    // Toggle menu mobile
     if (menuToggle && navLinks) {
         menuToggle.addEventListener('click', () => {
-            menuToggle.classList.toggle('active');
             navLinks.classList.toggle('active');
         });
-
-        // Fermer le menu au clic sur un lien
-        navLinks.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                menuToggle.classList.remove('active');
-                navLinks.classList.remove('active');
-            });
-        });
-        
-        // Bouton de retour
-        const menuBackBtn = document.querySelector('.menu-back-btn');
-        if (menuBackBtn) {
-            menuBackBtn.addEventListener('click', () => {
-                menuToggle.classList.remove('active');
-                navLinks.classList.remove('active');
-                window.history.back();
-            });
-        }
     }
 
-    // Navigation des liens - VERSION ULTRA SIMPLE
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            const href = this.getAttribute('href');
-            if (!href || href === '#') return;
-            
-            const target = document.querySelector(href);
-            if (!target) return;
-            
-            // Scroll simple vers la cible
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
+    // Bouton retour menu
+    if (menuBackBtn && navLinks) {
+        menuBackBtn.addEventListener('click', () => {
+            navLinks.classList.remove('active');
         });
+    }
+
+    // Navigation smooth scroll
+    const navItems = document.querySelectorAll('.nav-links a[href^="#"]');
+    navItems.forEach(item => {
+        item.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+                targetElement.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+                
+                // Fermer le menu mobile
+                if (navLinks.classList.contains('active')) {
+                    navLinks.classList.remove('active');
+                }
+            }
+        });
+    });
+
+    // Animations au scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate');
+            }
+        });
+    }, observerOptions);
+
+    animatedElements.forEach(element => {
+        observer.observe(element);
     });
 
     // Bouton retour en haut + animations au scroll
@@ -70,14 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 backToTop.classList.remove('show');
             }
         }
-
-        // Animations des blocs
-        document.querySelectorAll('.animate-on-scroll').forEach(el => {
-            const rect = el.getBoundingClientRect();
-            if (rect.top < window.innerHeight - 120) {
-                el.classList.add('animated');
-            }
-        });
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -91,75 +93,53 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Formulaire de contact fonctionnel avec Netlify Forms
-    if (contactForm && formMessage) {
-        contactForm.addEventListener('submit', e => {
+    // Formulaire de contact avec Web3Forms (AJAX - pas de rechargement de page)
+    if (contactForm) {
+        contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            formMessage.textContent = '';
-            formMessage.className = 'form-message';
-
-            const name = contactForm.querySelector('#name');
-            const email = contactForm.querySelector('#email');
-            const message = contactForm.querySelector('#message');
-            const privacy = contactForm.querySelector('#privacy');
-
-            // Validation et nettoyage
-            const cleanName = name.value.trim().replace(/[<>]/g, '');
-            const cleanEmail = email.value.trim().replace(/[<>]/g, '');
-            const cleanMessage = message.value.trim().replace(/[<>]/g, '');
-
-            // Validation renforcée
-            if (!cleanName || cleanName.length < 2 || cleanName.length > 50) {
-                formMessage.textContent = 'Nom invalide (2-50 caractères requis).';
-                formMessage.classList.add('error');
-                return;
-            }
-
-            if (!cleanEmail || !isValidEmail(cleanEmail)) {
-                formMessage.textContent = 'Email invalide.';
-                formMessage.classList.add('error');
-                return;
-            }
-
-            if (!cleanMessage || cleanMessage.length < 10 || cleanMessage.length > 1000) {
-                formMessage.textContent = 'Message invalide (10-1000 caractères requis).';
-                formMessage.classList.add('error');
-                return;
-            }
-
-            if (!privacy.checked) {
-                formMessage.textContent = 'Veuillez accepter la politique de confidentialité.';
-                formMessage.classList.add('error');
-                return;
-            }
-
-            // Protection contre la soumission multiple
+            
             const submitBtn = contactForm.querySelector('button[type="submit"]');
             const originalText = submitBtn.textContent;
             submitBtn.disabled = true;
             submitBtn.textContent = 'Envoi en cours...';
-
-            // Soumission via Netlify
+            
+            // Créer un élément pour le message de confirmation s'il n'existe pas
+            let formMessage = document.getElementById('formMessage');
+            if (!formMessage) {
+                formMessage = document.createElement('div');
+                formMessage.id = 'formMessage';
+                formMessage.style.marginTop = '15px';
+                formMessage.style.padding = '15px';
+                formMessage.style.borderRadius = '5px';
+                contactForm.appendChild(formMessage);
+            }
+            
+            // Récupérer les données du formulaire
             const formData = new FormData(contactForm);
             
-            fetch('/', {
+            // Envoyer via Web3Forms
+            fetch('https://api.web3forms.com/submit', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => {
-                if (response.ok) {
-                    formMessage.textContent = '✅ Message envoyé avec succès ! Je vous répondrai dans les plus brefs délais.';
-                    formMessage.classList.remove('error');
-                    formMessage.classList.add('success');
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    formMessage.textContent = '✅ Votre message a été envoyé avec succès ! Je vous répondrai dans les plus brefs délais.';
+                    formMessage.style.backgroundColor = '#d4edda';
+                    formMessage.style.color = '#155724';
+                    formMessage.style.border = '1px solid #c3e6cb';
                     contactForm.reset();
                 } else {
-                    throw new Error('Erreur serveur');
+                    throw new Error(data.message || 'Erreur lors de l\'envoi');
                 }
             })
             .catch(error => {
+                formMessage.textContent = '❌ Une erreur est survenue. Veuillez réessayer ou me contacter directement par email.';
+                formMessage.style.backgroundColor = '#f8d7da';
+                formMessage.style.color = '#721c24';
+                formMessage.style.border = '1px solid #f5c6cb';
                 console.error('Erreur:', error);
-                formMessage.textContent = '❌ Erreur lors de l\'envoi. Veuillez réessayer ou m\'appeler directement au 06 16 83 59 71.';
-                formMessage.classList.add('error');
             })
             .finally(() => {
                 submitBtn.disabled = false;
