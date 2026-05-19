@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://susanabarrera.fr/sitemap.xml
+
+# Blocage des dossiers inutiles
+Disallow: /admin/
+Disallow: /private/
+Disallow: *.log
+
+# Autorisation des ressources importantes
+Allow: /css/
+Allow: /js/
+Allow: /images/
+
+# Localisation France
+User-agent: Googlebot
+Allow: /

@@ -1,64 +1,3 @@
-// Fonction pour activer/désactiver la vue mobile
-function toggleMobileView(enable) {
-    const body = document.body;
-    const mobileToggleBtn = document.getElementById('mobileToggle');
-    
-    if (enable) {
-        // Créer le conteneur de prévisualisation mobile s'il n'existe pas
-        if (!document.getElementById('mobilePreviewContainer')) {
-            const mobilePreview = document.createElement('div');
-            mobilePreview.id = 'mobilePreviewContainer';
-            mobilePreview.className = 'mobile-preview-container';
-            
-            // Créer l'iframe
-            const iframe = document.createElement('iframe');
-            iframe.className = 'mobile-preview-iframe';
-            iframe.src = window.location.href + (window.location.search ? '&' : '?') + 'mobile-preview=true';
-            
-            // Créer le bouton de fermeture
-            const closeBtn = document.createElement('button');
-            closeBtn.className = 'close-mobile-preview';
-            closeBtn.innerHTML = '&times;';
-            closeBtn.onclick = () => toggleMobileView(false);
-            
-            mobilePreview.appendChild(iframe);
-            mobilePreview.appendChild(closeBtn);
-            document.body.appendChild(mobilePreview);
-            
-            // Ajouter un écouteur pour fermer en cliquant à l'extérieur
-            mobilePreview.addEventListener('click', (e) => {
-                if (e.target === mobilePreview) {
-                    toggleMobileView(false);
-                }
-            });
-        }
-        
-        // Activer la vue mobile
-        body.classList.add('mobile-view');
-        mobileToggleBtn.classList.add('active');
-        mobileToggleBtn.title = 'Revenir à la version bureau';
-        mobileToggleBtn.innerHTML = '<i class="fas fa-desktop"></i>';
-        
-        // Empêcher le défilement du body
-        document.body.style.overflow = 'hidden';
-    } else {
-        // Désactiver la vue mobile
-        body.classList.remove('mobile-view');
-        mobileToggleBtn.classList.remove('active');
-        mobileToggleBtn.title = 'Afficher la version mobile';
-        mobileToggleBtn.innerHTML = '<i class="fas fa-mobile-alt"></i>';
-        
-        // Rétablir le défilement
-        document.body.style.overflow = '';
-        
-        // Supprimer l'iframe pour libérer les ressources
-        const previewContainer = document.getElementById('mobilePreviewContainer');
-        if (previewContainer) {
-            previewContainer.remove();
-        }
-    }
-}
-
 // Attente du chargement du DOM
 document.addEventListener('DOMContentLoaded', () => {
     // Sélection des éléments du DOM
@@ -152,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Validation et sécurité du formulaire de contact
+    // Formulaire de contact fonctionnel avec Netlify Forms
     if (contactForm && formMessage) {
         contactForm.addEventListener('submit', e => {
             e.preventDefault();
@@ -164,7 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const message = contactForm.querySelector('#message');
             const privacy = contactForm.querySelector('#privacy');
 
-            // Sécurité : validation et nettoyage des entrées
+            // Validation et nettoyage
             const cleanName = name.value.trim().replace(/[<>]/g, '');
             const cleanEmail = email.value.trim().replace(/[<>]/g, '');
             const cleanMessage = message.value.trim().replace(/[<>]/g, '');
@@ -196,18 +135,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Protection contre la soumission multiple
             const submitBtn = contactForm.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
             submitBtn.disabled = true;
             submitBtn.textContent = 'Envoi en cours...';
 
-            // Simulation d'envoi sécurisé
-            setTimeout(() => {
-                formMessage.textContent = 'Votre message a été envoyé. Merci pour votre confiance.';
-                formMessage.classList.remove('error');
-                formMessage.classList.add('success');
-                contactForm.reset();
+            // Soumission via Netlify
+            const formData = new FormData(contactForm);
+            
+            fetch('/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    formMessage.textContent = '✅ Message envoyé avec succès ! Je vous répondrai dans les plus brefs délais.';
+                    formMessage.classList.remove('error');
+                    formMessage.classList.add('success');
+                    contactForm.reset();
+                } else {
+                    throw new Error('Erreur serveur');
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                formMessage.textContent = '❌ Erreur lors de l\'envoi. Veuillez réessayer ou m\'appeler directement au 06 16 83 59 71.';
+                formMessage.classList.add('error');
+            })
+            .finally(() => {
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Envoyer le message';
-            }, 1500);
+                submitBtn.textContent = originalText;
+            });
         });
     }
 
@@ -215,48 +172,5 @@ document.addEventListener('DOMContentLoaded', () => {
     function isValidEmail(email) {
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
         return emailRegex.test(email) && !email.includes('..') && email.length <= 254;
-    }
-
-    // Gestion du bouton de basculement mobile
-    const mobileToggle = document.getElementById('mobileToggle');
-    if (mobileToggle) {
-        mobileToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const isActive = mobileToggle.classList.contains('active');
-            toggleMobileView(!isActive);
-        });
-
-        // Fermer avec la touche Échap
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && mobileToggle.classList.contains('active')) {
-                toggleMobileView(false);
-            }
-        });
-    }
-
-    // Vérifier le paramètre d'URL pour la prévisualisation mobile
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('mobile-preview') === 'true') {
-        // Ajouter une classe au body pour la vue mobile
-        document.body.classList.add('mobile-preview-mode');
-        
-        // Ajouter un bouton pour quitter la prévisualisation
-        const exitPreview = document.createElement('button');
-        exitPreview.id = 'exitMobilePreview';
-        exitPreview.className = 'btn btn-primary';
-        exitPreview.innerHTML = '<i class="fas fa-times"></i> Quitter la prévisualisation mobile';
-        exitPreview.style.position = 'fixed';
-        exitPreview.style.bottom = '20px';
-        exitPreview.style.left = '50%';
-        exitPreview.style.transform = 'translateX(-50%)';
-        exitPreview.style.zIndex = '1000';
-        exitPreview.style.padding = '10px 20px';
-        exitPreview.style.borderRadius = '30px';
-        exitPreview.style.boxShadow = '0 4px 15px rgba(0, 0, 0, 0.2)';
-        exitPreview.onclick = () => {
-            window.location.href = window.location.href.replace(/[?&]mobile-preview=true/, '');
-        };
-        
-        document.body.appendChild(exitPreview);
     }
 });
