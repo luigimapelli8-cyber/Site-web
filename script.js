@@ -67,7 +67,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const backToTop = document.getElementById('backToTop');
     const yearSpan = document.getElementById('currentYear');
     const contactForm = document.getElementById('contactForm');
-    const formMessage = document.getElementById('formMessage');
 
     // Mise à jour de l'année dans le footer
     if (yearSpan) {
@@ -154,18 +153,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Formulaire de contact avec Web3Forms
     const form = document.getElementById('form');
+    const formMessage = document.getElementById('formMessage');
     if (form) {
         const submitBtn = form.querySelector('button[type="submit"]');
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            // Validation hCaptcha
-            const hCaptcha = form.querySelector('textarea[name="h-captcha-response"]').value;
-            if (!hCaptcha) {
-                alert("Veuillez remplir le champ captcha");
-                return;
-            }
 
             const formData = new FormData(form);
             formData.append("access_key", "f80e4838-78b7-46a3-8828-e49ef761d382");
@@ -174,6 +167,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
             submitBtn.textContent = "Envoi en cours...";
             submitBtn.disabled = true;
+
+            // Réinitialiser le message
+            if (formMessage) {
+                formMessage.textContent = "";
+                formMessage.className = "form-message";
+            }
 
             try {
                 const response = await fetch("https://api.web3forms.com/submit", {
@@ -184,14 +183,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert("Succès ! Votre message a été envoyé.");
+                    if (formMessage) {
+                        formMessage.textContent = "✓ Votre message a bien été envoyé !";
+                        formMessage.className = "form-message success";
+                    }
                     form.reset();
                 } else {
-                    alert("Erreur : " + data.message);
+                    if (formMessage) {
+                        formMessage.textContent = "Erreur : " + data.message;
+                        formMessage.className = "form-message error";
+                    }
                 }
 
             } catch (error) {
-                alert("Une erreur s'est produite. Veuillez réessayer.");
+                if (formMessage) {
+                    formMessage.textContent = "Une erreur s'est produite. Veuillez réessayer.";
+                    formMessage.className = "form-message error";
+                }
             } finally {
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;

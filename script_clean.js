@@ -93,59 +93,66 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Formulaire de contact avec Web3Forms (AJAX - pas de rechargement de page)
+    // Formulaire de contact avec Web3Forms (code officiel adapté)
     if (contactForm) {
-        contactForm.addEventListener('submit', function(e) {
+        const submitBtn = contactForm.querySelector('button[type="submit"]');
+
+        contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const submitBtn = contactForm.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Envoi en cours...';
-            
-            // Créer un élément pour le message de confirmation s'il n'existe pas
-            let formMessage = document.getElementById('formMessage');
-            if (!formMessage) {
-                formMessage = document.createElement('div');
-                formMessage.id = 'formMessage';
-                formMessage.style.marginTop = '15px';
-                formMessage.style.padding = '15px';
-                formMessage.style.borderRadius = '5px';
-                contactForm.appendChild(formMessage);
-            }
-            
-            // Récupérer les données du formulaire
+
             const formData = new FormData(contactForm);
-            
-            // Envoyer via Web3Forms
-            fetch('https://api.web3forms.com/submit', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    formMessage.textContent = '✅ Votre message a été envoyé avec succès ! Je vous répondrai dans les plus brefs délais.';
-                    formMessage.style.backgroundColor = '#d4edda';
-                    formMessage.style.color = '#155724';
-                    formMessage.style.border = '1px solid #c3e6cb';
-                    contactForm.reset();
+            formData.append("access_key", "f80e4838-78b7-46a3-8828-e49ef761d382");
+
+            const originalText = submitBtn.textContent;
+
+            submitBtn.textContent = "Envoi en cours...";
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch("https://api.web3forms.com/submit", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Rediriger vers la page avec paramètre de succès
+                    window.location.href = window.location.pathname + '?form=success#contact';
                 } else {
-                    throw new Error(data.message || 'Erreur lors de l\'envoi');
+                    alert("Erreur : " + data.message);
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
                 }
-            })
-            .catch(error => {
-                formMessage.textContent = '❌ Une erreur est survenue. Veuillez réessayer ou me contacter directement par email.';
-                formMessage.style.backgroundColor = '#f8d7da';
-                formMessage.style.color = '#721c24';
-                formMessage.style.border = '1px solid #f5c6cb';
-                console.error('Erreur:', error);
-            })
-            .finally(() => {
-                submitBtn.disabled = false;
+
+            } catch (error) {
+                alert("Une erreur s'est produite. Veuillez réessayer.");
                 submitBtn.textContent = originalText;
-            });
+                submitBtn.disabled = false;
+            }
         });
+    }
+
+    // Vérifier si le formulaire a été envoyé avec succès
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('form') === 'success') {
+        const formMessage = document.getElementById('formMessage');
+        if (formMessage) {
+            formMessage.textContent = '✓ Votre message a bien été envoyé !';
+            formMessage.className = 'form-message success';
+        }
+
+        // Scroller vers la section contact
+        const contactSection = document.getElementById('contact');
+        if (contactSection) {
+            contactSection.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // Nettoyer l'URL sans recharger la page
+        window.history.replaceState({}, document.title, window.location.pathname + '#contact');
     }
 
     // Fonction de validation email sécurisée
